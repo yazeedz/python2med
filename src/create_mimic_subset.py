@@ -15,69 +15,83 @@ from datetime import datetime
 import random
 from tqdm import tqdm
 import sys
-import argparse
 
-def parse_arguments():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(
-        description='Create a subset of the MIMIC-III database for educational purposes.',
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    
-    parser.add_argument(
-        'mimic_zip',
-        help='Path to the MIMIC-III zip file (mimic-iii-clinical-database-1.4.zip)'
-    )
-    
-    parser.add_argument(
-        'subset_dir',
-        help='Directory where the subset will be saved'
-    )
-    
-    parser.add_argument(
-        '--sample-size',
-        type=int,
-        default=3000,
-        help='Number of hospital admissions to include in the subset (default: 3000)'
-    )
-    
-    return parser.parse_args()
+def get_input_path():
+    """Get and validate the input zip file path."""
+    while True:
+        mimic_zip = input("\nEnter the path to the MIMIC-III zip file (mimic-iii-clinical-database-1.4.zip): ").strip()
+        
+        if not mimic_zip:  # Allow user to exit
+            sys.exit("\nOperation cancelled.")
+            
+        if not os.path.exists(mimic_zip):
+            print(f"\nError: The file {mimic_zip} does not exist.")
+            continue
+            
+        if not mimic_zip.endswith('.zip'):
+            print(f"\nError: {mimic_zip} is not a zip file.")
+            continue
+            
+        # Check if the zip file contains required files
+        try:
+            with zipfile.ZipFile(mimic_zip, 'r') as zip_ref:
+                # Get the root directory name from the first file in the zip
+                root_dir = zip_ref.namelist()[0].split('/')[0]
+                required_files = [
+                    f"{root_dir}/ADMISSIONS.csv.gz",
+                    f"{root_dir}/PATIENTS.csv.gz",
+                    f"{root_dir}/ICUSTAYS.csv.gz"
+                ]
+                missing_files = [f for f in required_files if f not in zip_ref.namelist()]
+                if missing_files:
+                    print(f"\nError: The following required files are missing in the zip file:")
+                    for f in missing_files:
+                        print(f"  - {f}")
+                    continue
+                return mimic_zip, root_dir
+        except zipfile.BadZipFile:
+            print(f"\nError: {mimic_zip} is not a valid zip file.")
+            continue
 
-def validate_inputs(mimic_zip, subset_dir):
-    """Validate input file and output directory."""
-    if not os.path.exists(mimic_zip):
-        raise FileNotFoundError(f"The file {mimic_zip} does not exist.")
-    
-    if not mimic_zip.endswith('.zip'):
-        raise ValueError(f"{mimic_zip} is not a zip file.")
-    
-    # Check if the zip file contains required files
-    with zipfile.ZipFile(mimic_zip, 'r') as zip_ref:
-        # Get the root directory name from the first file in the zip
-        root_dir = zip_ref.namelist()[0].split('/')[0]
-        required_files = [
-            f"{root_dir}/ADMISSIONS.csv.gz",
-            f"{root_dir}/PATIENTS.csv.gz",
-            f"{root_dir}/ICUSTAYS.csv.gz"
-        ]
-        missing_files = [f for f in required_files if f not in zip_ref.namelist()]
-        if missing_files:
-            raise ValueError(
-                f"The following required files are missing in the zip file:\n" +
-                "\n".join(f"  - {f}" for f in missing_files)
-            )
-    
-    if os.path.exists(subset_dir):
-        if not os.path.isdir(subset_dir):
-            raise NotADirectoryError(f"{subset_dir} exists but is not a directory.")
-        if os.listdir(subset_dir):
-            response = input(f"Warning: {subset_dir} is not empty. Continue? (y/n): ").strip().lower()
-            if response != 'y':
-                sys.exit("Operation cancelled.")
-    else:
-        os.makedirs(subset_dir)
-    
-    return root_dir
+def get_output_path():
+    """Get and validate the output directory path."""
+    while True:
+        subset_dir = input("\nEnter the path where you want to save the subset: ").strip()
+        
+        if not subset_dir:  # Allow user to exit
+            sys.exit("\nOperation cancelled.")
+            
+        if os.path.exists(subset_dir):
+            if not os.path.isdir(subset_dir):
+                print(f"\nError: {subset_dir} exists but is not a directory.")
+                continue
+            if os.listdir(subset_dir):
+                response = input(f"\nWarning: {subset_dir} is not empty. Continue? (y/n): ").strip().lower()
+                if response != 'y':
+                    continue
+        else:
+            try:
+                os.makedirs(subset_dir)
+            except Exception as e:
+                print(f"\nError: Could not create directory {subset_dir}: {str(e)}")
+                continue
+        
+        return subset_dir
+
+def get_sample_size():
+    """Get the desired sample size from user."""
+    while True:
+        try:
+            size = input("\nEnter the number of admissions to include (default: 3000): ").strip()
+            if not size:  # Use default
+                return 3000
+            size = int(size)
+            if size <= 0:
+                print("\nError: Sample size must be positive.")
+                continue
+            return size
+        except ValueError:
+            print("\nError: Please enter a valid number.")
 
 def read_csv_gz_from_zip(zip_path, root_dir, file_name, **kwargs):
     """Read a gzipped CSV file from a zip archive into a pandas DataFrame."""
@@ -310,9 +324,26 @@ This directory contains a subset of the MIMIC-III database created for education
 
 def main():
     """Main entry point."""
-    args = parse_arguments()
-    success = create_subset(args.mimic_zip, args.subset_dir, args.sample_size)
-    sys.exit(0 if success else 1)
+    print("\n" + "="*80)
+    print("MIMIC-III Subset Creator")
+    print("="*80)
+    
+    try:
+        # Get input and output paths
+        mimic_zip, root_dir = get_input_path()
+        subset_dir = get_output_path()
+        sample_size = get_sample_size()
+        
+        # Create the subset
+        success = create_subset(mimic_zip, subset_dir, sample_size)
+        sys.exit(0 if success else 1)
+        
+    except KeyboardInterrupt:
+        print("\n\nOperation cancelled by user.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\nError: An unexpected error occurred: {str(e)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main() 

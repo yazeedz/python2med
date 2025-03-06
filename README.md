@@ -18,6 +18,7 @@ To use this tool, you need access to the MIMIC-III Clinical Database. To get acc
 - Maintains data relationships and integrity
 - Progress bars and detailed status updates
 - Creates a comprehensive README for the subset
+- Interactive command-line interface
 
 ## Prerequisites
 
@@ -119,32 +120,41 @@ To use this tool, you need access to the MIMIC-III Clinical Database. To get acc
 
 ## Usage
 
-### Basic Usage
+### Running the Script
+
+Simply run the script and follow the interactive prompts:
 
 ```bash
 # Windows
-python src/create_mimic_subset.py "path\to\mimic-iii-clinical-database-1.4.zip" "path\to\output\directory"
+python src/create_mimic_subset.py
 
 # macOS/Linux
-python3 src/create_mimic_subset.py "/path/to/mimic-iii-clinical-database-1.4.zip" "/path/to/output/directory"
+python3 src/create_mimic_subset.py
 ```
 
-### Advanced Usage
+The script will ask you for:
+1. The path to your MIMIC-III zip file
+2. The directory where you want to save the subset
+3. The number of admissions to include (optional, default is 3000)
 
-You can specify the number of admissions to include in the subset:
+### Example Session
 
-```bash
-python3 src/create_mimic_subset.py "/path/to/mimic.zip" "/path/to/output" --sample-size 5000
 ```
+========================================
+MIMIC-III Subset Creator
+========================================
 
-### Example
+Enter the path to the MIMIC-III zip file (mimic-iii-clinical-database-1.4.zip): /Downloads/mimic-iii-clinical-database-1.4.zip
 
-```bash
-# Windows
-python src/create_mimic_subset.py "C:\Downloads\mimic-iii-clinical-database-1.4.zip" "C:\MIMIC-III-Subset"
+Enter the path where you want to save the subset: /MIMIC-III-Subset
 
-# macOS/Linux
-python3 src/create_mimic_subset.py "/Downloads/mimic-iii-clinical-database-1.4.zip" "/MIMIC-III-Subset"
+Enter the number of admissions to include (default: 3000): 
+
+Starting MIMIC-III subset creation...
+Input file: /Downloads/mimic-iii-clinical-database-1.4.zip
+Output directory: /MIMIC-III-Subset
+Sample size: 3000 admissions
+========================================
 ```
 
 ## Output
@@ -188,7 +198,7 @@ The script will create a directory containing:
 
 4. **Memory errors**
    - Close other applications
-   - Reduce the sample size using `--sample-size`
+   - Reduce the sample size when prompted
    - If using a VM, increase allocated RAM
 
 ### Getting Help
