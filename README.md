@@ -19,6 +19,7 @@ To use this tool, you need access to the MIMIC-III Clinical Database. To get acc
 - Progress bars and detailed status updates
 - Creates a comprehensive README for the subset
 - Interactive command-line interface
+- Supports paths with or without quotes
 
 ## Prerequisites
 
@@ -137,24 +138,31 @@ The script will ask you for:
 2. The directory where you want to save the subset
 3. The number of admissions to include (optional, default is 3000)
 
-### Example Session
+You can enter paths with or without quotes:
+```
+/path/to/file.zip
+"/path/to/file.zip"
+'C:\path\to\file.zip'
+```
+
+### Example Sessions
 
 ```
 ========================================
 MIMIC-III Subset Creator
 ========================================
 
-Enter the path to the MIMIC-III zip file (mimic-iii-clinical-database-1.4.zip): /Downloads/mimic-iii-clinical-database-1.4.zip
-
+# Example with regular paths
+Enter the path to the MIMIC-III zip file: /Downloads/mimic-iii-clinical-database-1.4.zip
 Enter the path where you want to save the subset: /MIMIC-III-Subset
+
+# Example with quoted paths (also works)
+Enter the path to the MIMIC-III zip file: "/Users/username/Downloads/mimic-iii-clinical-database-1.4.zip"
+Enter the path where you want to save the subset: 'C:\Users\username\MIMIC-III-Subset'
 
 Enter the number of admissions to include (default: 3000): 
 
 Starting MIMIC-III subset creation...
-Input file: /Downloads/mimic-iii-clinical-database-1.4.zip
-Output directory: /MIMIC-III-Subset
-Sample size: 3000 admissions
-========================================
 ```
 
 ## Output

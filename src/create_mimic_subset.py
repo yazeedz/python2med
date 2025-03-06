@@ -16,10 +16,14 @@ import random
 from tqdm import tqdm
 import sys
 
+def clean_path(path):
+    """Clean a path string by removing quotes and extra whitespace."""
+    return path.strip().strip('"\'')
+
 def get_input_path():
     """Get and validate the input zip file path."""
     while True:
-        mimic_zip = input("\nEnter the path to the MIMIC-III zip file (mimic-iii-clinical-database-1.4.zip): ").strip()
+        mimic_zip = clean_path(input("\nEnter the path to the MIMIC-III zip file (mimic-iii-clinical-database-1.4.zip): "))
         
         if not mimic_zip:  # Allow user to exit
             sys.exit("\nOperation cancelled.")
@@ -56,7 +60,7 @@ def get_input_path():
 def get_output_path():
     """Get and validate the output directory path."""
     while True:
-        subset_dir = input("\nEnter the path where you want to save the subset: ").strip()
+        subset_dir = clean_path(input("\nEnter the path where you want to save the subset: "))
         
         if not subset_dir:  # Allow user to exit
             sys.exit("\nOperation cancelled.")
@@ -66,7 +70,7 @@ def get_output_path():
                 print(f"\nError: {subset_dir} exists but is not a directory.")
                 continue
             if os.listdir(subset_dir):
-                response = input(f"\nWarning: {subset_dir} is not empty. Continue? (y/n): ").strip().lower()
+                response = clean_path(input(f"\nWarning: {subset_dir} is not empty. Continue? (y/n): ")).lower()
                 if response != 'y':
                     continue
         else:
@@ -169,15 +173,12 @@ def process_labevents_chunks(zip_path, root_dir, subject_ids, chunksize=100000, 
     else:
         return pd.DataFrame()
 
-def create_subset(mimic_zip, subset_dir, sample_size=3000):
+def create_subset(mimic_zip, subset_dir, root_dir, sample_size=3000):
     """Create a subset of the MIMIC-III database."""
     try:
         # Set random seed for reproducibility
         np.random.seed(42)
         random.seed(42)
-        
-        # Validate inputs and get root directory name
-        root_dir = validate_inputs(mimic_zip, subset_dir)
         
         # Create plots directory
         plots_dir = os.path.join(subset_dir, "_plots")
@@ -185,7 +186,7 @@ def create_subset(mimic_zip, subset_dir, sample_size=3000):
             os.makedirs(plots_dir)
         
         print("\nStarting MIMIC-III subset creation...")
-        print(f"Input zip file: {mimic_zip}")
+        print(f"Input file: {mimic_zip}")
         print(f"Output directory: {subset_dir}")
         print(f"Sample size: {sample_size} admissions")
         print("="*80 + "\n")
@@ -335,7 +336,7 @@ def main():
         sample_size = get_sample_size()
         
         # Create the subset
-        success = create_subset(mimic_zip, subset_dir, sample_size)
+        success = create_subset(mimic_zip, subset_dir, root_dir, sample_size)
         sys.exit(0 if success else 1)
         
     except KeyboardInterrupt:
